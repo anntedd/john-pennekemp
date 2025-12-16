@@ -7,7 +7,8 @@ import random
 import time
 
 # ===========================
-# Random sleep for hourly randomness
+# Optional: Random sleep for hourly randomness
+# Comment out for first test run
 # ===========================
 # sleep_seconds = random.randint(0, 59 * 60)
 # print(f"Sleeping {sleep_seconds // 60} minutes and {sleep_seconds % 60} seconds before checking...")
@@ -43,11 +44,12 @@ try:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto(URL)
-        page.wait_for_timeout(5000)  # let JS render
+        page.wait_for_timeout(3000)  # let JS render
 
-        # Click "Book Your Overnight Stay Today"
-        page.locator("text=Book Your Overnight Stay Today").click()
-        page.wait_for_timeout(3000)
+        # Click "Book Your Overnight Stay Today!" image
+        page.wait_for_selector('img[alt="Book Your Overnight Stay Today"]', timeout=10000)
+        page.locator('img[alt="Book Your Overnight Stay Today"]').click()
+        page.wait_for_timeout(2000)
 
         # Enter park name
         input_selector = "#home-search-location-input"
@@ -60,8 +62,9 @@ try:
         page.fill("#nights", NIGHTS)
 
         # Click Show Results
-        page.locator("text=Show Results").click()
-        page.wait_for_timeout(5000)
+        page.wait_for_selector('text=Show Results', timeout=10000)
+        page.locator('text=Show Results').click()
+        page.wait_for_timeout(3000)
 
         # Get availability from aria-label
         park_card = page.locator("a[aria-label*='John Pennekamp Coral Reef State Park']")
