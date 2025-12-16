@@ -9,9 +9,9 @@ import time
 # ===========================
 # Random sleep for hourly randomness
 # ===========================
-sleep_seconds = random.randint(0, 59 * 60)
-print(f"Sleeping {sleep_seconds // 60} minutes and {sleep_seconds % 60} seconds before checking...")
-time.sleep(sleep_seconds)
+# sleep_seconds = random.randint(0, 59 * 60)
+# print(f"Sleeping {sleep_seconds // 60} minutes and {sleep_seconds % 60} seconds before checking...")
+# time.sleep(sleep_seconds)
 
 # ===========================
 # Email setup
