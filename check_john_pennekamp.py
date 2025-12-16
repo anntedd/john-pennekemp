@@ -45,8 +45,8 @@ try:
         page.goto(URL)
         page.wait_for_timeout(5000)  # let JS render
 
-        # Click "Book your overnight stay today!"
-        page.locator("text=Book your overnight stay today").click()
+        # Click "Book Your Overnight Stay Today"
+        page.locator("text=Book Your Overnight Stay Today").click()
         page.wait_for_timeout(3000)
 
         # Enter park name
