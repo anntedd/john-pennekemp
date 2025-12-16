@@ -81,4 +81,29 @@ def check_availability():
                 )
             else:
                 send_email(
-                    f"John Pennekamp Updat
+                    f"John Pennekamp Update: 0 Sites ({now_str})",
+                    f"❌ No availability yet for April 4-5, 2026.\nChecked at {now_str}"
+                )
+
+            browser.close()
+    
+    except Exception as e:
+        send_email(f"John Pennekamp Script Error ({now_str})", f"Something went wrong:\n{e}")
+        raise
+
+# ===========================
+# Main loop: random minute each hour
+# ===========================
+# Run the first check immediately
+check_availability()
+
+while True:
+    now = datetime.now()
+    # Pick a random minute (0–59) for next run
+    random_minute = random.randint(0, 59)
+    # Next run = next hour at the random minute
+    next_run = (now + timedelta(hours=1)).replace(minute=random_minute, second=0, microsecond=0)
+    sleep_seconds = (next_run - now).total_seconds()
+    print(f"Sleeping {sleep_seconds} seconds until next check at {next_run.strftime('%Y-%m-%d %H:%M:%S')}")
+    time.sleep(sleep_seconds)
+    check_availability()
