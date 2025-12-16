@@ -9,12 +9,10 @@ import time
 # ===========================
 # Random sleep for hourly randomness
 # ===========================
-# First run immediately, after that use random minute
-FIRST_RUN = True  # set False after first manual test
-if not FIRST_RUN:
-    sleep_seconds = random.randint(0, 59 * 60)
-    print(f"Sleeping {sleep_seconds // 60} minutes and {sleep_seconds % 60} seconds before checking...")
-    time.sleep(sleep_seconds)
+# For the first run, comment out the sleep below. For subsequent runs, uncomment it.
+# sleep_seconds = random.randint(0, 59 * 60)
+# print(f"Sleeping {sleep_seconds // 60} minutes and {sleep_seconds % 60} seconds before checking...")
+# time.sleep(sleep_seconds)
 
 # ===========================
 # Email setup
@@ -45,23 +43,27 @@ try:
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
+
+        # Open main page
         page.goto(URL)
-        page.wait_for_timeout(3000)  # let JS render
+        page.wait_for_timeout(3000)  # let initial page load
 
         # Click "Book Your Overnight Stay Today" and catch new tab
         with page.expect_popup() as popup_info:
             page.locator("img[alt='Book Your Overnight Stay Today']").click()
         new_page = popup_info.value
-        new_page.wait_for_timeout(2000)
 
-        # Wait for the search input and fill
+        # Wait for new page to load completely
+        new_page.wait_for_load_state("networkidle")  # ensures AJAX elements load
+
+        # Wait for the park search input to appear
         input_selector = "#home-search-location-input"
-        new_page.wait_for_selector(input_selector, timeout=30000)
+        new_page.wait_for_selector(input_selector, timeout=60000)  # 60s timeout
         new_page.fill(input_selector, "John Pennekamp Coral Reef State Park")
         new_page.keyboard.press("Enter")
         new_page.wait_for_timeout(2000)
 
-        # Enter arrival date and nights
+        # Fill arrival date and nights
         new_page.fill("#arrivaldate", ARRIVAL_DATE)
         new_page.fill("#nights", NIGHTS)
 
