@@ -7,6 +7,16 @@ import random
 import time
 
 # ===========================
+# Random sleep for hourly randomness
+# ===========================
+# First run immediately, after that use random minute
+FIRST_RUN = True  # set False after first manual test
+if not FIRST_RUN:
+    sleep_seconds = random.randint(0, 59 * 60)
+    print(f"Sleeping {sleep_seconds // 60} minutes and {sleep_seconds % 60} seconds before checking...")
+    time.sleep(sleep_seconds)
+
+# ===========================
 # Email setup
 # ===========================
 EMAIL_FROM = os.environ["EMAIL_FROM"]
@@ -25,15 +35,6 @@ def send_email(subject, body):
     print("Email sent successfully!")
 
 # ===========================
-# Random sleep for hourly randomness (skip first run)
-# ===========================
-FIRST_RUN = True  # set False after first test
-if not FIRST_RUN:
-    sleep_seconds = random.randint(0, 59 * 60)
-    print(f"Sleeping {sleep_seconds // 60} minutes and {sleep_seconds % 60} seconds before checking...")
-    time.sleep(sleep_seconds)
-
-# ===========================
 # John Pennekamp availability check
 # ===========================
 ARRIVAL_DATE = "04/04/2026"
@@ -45,32 +46,31 @@ try:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto(URL)
-        page.wait_for_timeout(5000)  # let JS render
+        page.wait_for_timeout(3000)  # let JS render
 
-        # Click "Book Your Overnight Stay Today" image
-        button = page.locator("img[alt='Book Your Overnight Stay Today']")
-        button.wait_for(state="visible", timeout=30000)
-        button.click()
-        page.wait_for_timeout(3000)
+        # Click "Book Your Overnight Stay Today" and catch new tab
+        with page.expect_popup() as popup_info:
+            page.locator("img[alt='Book Your Overnight Stay Today']").click()
+        new_page = popup_info.value
+        new_page.wait_for_timeout(2000)
 
-        # Enter park name with autocomplete
+        # Wait for the search input and fill
         input_selector = "#home-search-location-input"
-        page.fill(input_selector, "John Pennekamp Coral Reef State Park")
-        page.wait_for_timeout(2000)  # wait for autocomplete suggestions
-        page.keyboard.press("Enter")
+        new_page.wait_for_selector(input_selector, timeout=30000)
+        new_page.fill(input_selector, "John Pennekamp Coral Reef State Park")
+        new_page.keyboard.press("Enter")
+        new_page.wait_for_timeout(2000)
 
         # Enter arrival date and nights
-        page.fill("#arrivaldate", ARRIVAL_DATE)
-        page.fill("#nights", NIGHTS)
+        new_page.fill("#arrivaldate", ARRIVAL_DATE)
+        new_page.fill("#nights", NIGHTS)
 
         # Click Show Results
-        show_button = page.locator("text=Show Results")
-        show_button.wait_for(state="visible", timeout=10000)
-        show_button.click()
-        page.wait_for_timeout(5000)
+        new_page.locator("text=Show Results").click()
+        new_page.wait_for_timeout(5000)
 
         # Get availability from aria-label
-        park_card = page.locator("a[aria-label*='John Pennekamp Coral Reef State Park']")
+        park_card = new_page.locator("a[aria-label*='John Pennekamp Coral Reef State Park']")
         label = park_card.get_attribute("aria-label")
         import re
         match = re.search(r'(\d+)\s+sites', label)
